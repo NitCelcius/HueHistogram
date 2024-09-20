@@ -26,7 +26,16 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("args", nargs="*")
-    parser.add_argument("-i", "--input", help="path(s) to input image files", nargs="+")
+    arg_input_group = parser.add_mutually_exclusive_group()
+    arg_input_group.add_argument(
+        "-i", "--input", help="path(s) to input image files", nargs="+"
+    )
+    arg_input_group.add_argument(
+        "-dir",
+        "--directory-input",
+        help="the path input image files are located",
+        nargs="+",
+    )
     parser.add_argument(
         "-o", "--output", help="path(s) to the directory to output histograms"
     )
@@ -50,10 +59,15 @@ if __name__ == "__main__":
                 "  python huehistogram_cli.py -i [path/to/image.jpg] [image_2.jpg] -o [path/to/histograms/]"
             )
             exit(SIG_INVALID_ARGS)
-        input_files = args.input
-        output_dir = args.output
+        else:
+            input_files = args.input
+            output_dir = args.output
     else:
-        if args.input is None and args.output is None:
+        if args.directory_input:
+            input_path = args.directory_input[0]
+            input_files = [os.path.join(input_path, file_name) for file_name in os.listdir(input_path)]
+            output_dir = args.output
+        elif args.input is None and args.output is None:
             input_files = sys.argv[
                 1:-1
             ]  # 実行するプログラム名と最後を除いて input だと思い込む
@@ -84,6 +98,10 @@ if __name__ == "__main__":
             input_files=input_files,
             output_dir=output_dir,
             out_dpi=output_dpi,
+            verbose=is_verbose
         )
     )
-    exit(0)
+    if res:
+        exit(0)
+    else:
+        exit(1)
