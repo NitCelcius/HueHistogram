@@ -1,16 +1,14 @@
 import math
 import os
 import warnings
+from concurrent.futures import ProcessPoolExecutor
 
 import cv2
-import line_profiler
-import memory_profiler
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
-from seaborn import barplot
 from matplotlib.pyplot import savefig, show
-from concurrent.futures import ProcessPoolExecutor
+from seaborn import barplot
 
 Uint8Info = np.iinfo(np.uint8)
 UINT8_MAX = Uint8Info.max
@@ -27,8 +25,8 @@ PLOT_SATURATION = 255  # ヒストグラムに使う色の彩度
 PLOT_BRIGHTNESS = 255  # ヒストグラムに使う色の明るさ
 
 
-@memory_profiler.profile
-@line_profiler.profile
+# @memory_profiler.profile
+# @line_profiler.profile
 def generate_hue_histogram(
     image_path: str,
     out_path: str | None = None,
@@ -67,10 +65,13 @@ def generate_hue_histogram(
 
     # 上書きを防止する
     if os.path.exists(image_path) and not allow_overwrite:
-        warnings.warn(f"The file {out_path} already exists, skipping! Specify allow_overwrite=True to allow overwrite.")
+        warnings.warn(
+            f"The file {out_path} already exists, skipping! Specify allow_overwrite=True to allow overwrite."
+        )
         return None
-    
-    if verbose: print(f"Processing {image_path}...")
+
+    if verbose:
+        print(f"Processing {image_path}...")
     img = cv2.imread(image_path)
     hsvf = cv2.cvtColor(img, cv2.COLOR_BGR2HSV_FULL).astype(
         np.int32
@@ -138,18 +139,23 @@ def generate_hue_histogram(
     if out_path is not None:
         if out_dpi is not None:
             if os.path.exists(out_path) and allow_overwrite is False:
-                warnings.warn(f"The file {out_path} already exists so unable to save the histogram! Specify allow_overwrite=True to allow overwrite.")
+                warnings.warn(
+                    f"The file {out_path} already exists so unable to save the histogram! Specify allow_overwrite=True to allow overwrite."
+                )
                 return
             savefig(out_path)
         else:
             if os.path.exists(out_path) and allow_overwrite is False:
-                warnings.warn(f"The file {out_path} already exists so unable to save the histogram! Specify allow_overwrite=True to allow overwrite.")
+                warnings.warn(
+                    f"The file {out_path} already exists so unable to save the histogram! Specify allow_overwrite=True to allow overwrite."
+                )
                 return
             savefig(out_path, dpi=out_dpi)
     else:
         show()
 
-    if verbose: print(f"Histogram saved to {out_path}")
+    if verbose:
+        print(f"Histogram saved to {out_path}")
 
     return g
 
@@ -157,7 +163,7 @@ def generate_hue_histogram(
 async def generate_hue_histograms(
     input_files: list[str],
     output_dir: str,
-    **kwargs
+    **kwargs,
     # out_dpi: int | None = None,
     # verbose: bool | None = None,
     # allow_overwrite: bool | None = None,
@@ -166,13 +172,15 @@ async def generate_hue_histograms(
     with ProcessPoolExecutor(max_workers=8) as executor:
         for input_file in input_files:
             output_path = os.path.join(output_dir, os.path.basename(input_file))
-            res = executor.submit(generate_hue_histogram, input_file, output_path, **kwargs)
+            res = executor.submit(
+                generate_hue_histogram, input_file, output_path, **kwargs
+            )
             if res.result() is None:
                 failed_files.append(input_file)
         if kwargs["verbose"] and failed_files:
             print("Failed to generate the histograms for following files: ")
             print(failed_files)
-    return not failed_files # 空っぽだと True になる
+    return not failed_files  # 空っぽだと True になる
 
 
 # generate_hue_histogram(
