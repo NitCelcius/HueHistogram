@@ -30,6 +30,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-o", "--output", help="path(s) to the directory to output histograms"
     )
+    parser.add_argument("-v", "--verbose", help="output", action="store_true")
+
     parser.add_argument("-d", "--dpi", help="the dpi to output histograms")
     args = parser.parse_args()
 
@@ -37,6 +39,7 @@ if __name__ == "__main__":
     output_dir = ""
     output_dpi = args.dpi
 
+    is_verbose = args.verbose
     if args.input is not None and args.output is not None:
         if args.args:
             print(
@@ -76,7 +79,11 @@ if __name__ == "__main__":
             print(f"Input file {input_file} does not exist!")
             exit(SIG_INVALID_ARGS)
 
-    asyncio.run(
-        Huehistogram.generate_hue_histograms(input_files, output_dir, output_dpi)
+    res = asyncio.run(
+        Huehistogram.generate_hue_histograms(
+            input_files=input_files,
+            output_dir=output_dir,
+            out_dpi=output_dpi,
+        )
     )
     exit(0)
