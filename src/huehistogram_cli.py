@@ -8,7 +8,6 @@ from Huehistogram import Huehistogram
 
 SIG_INVALID_ARGS = 1
 
-print("Run cli")
 if __name__ == "__main__":
 
     def show_help():
@@ -80,5 +79,4 @@ if __name__ == "__main__":
     asyncio.run(
         Huehistogram.generate_hue_histograms(input_files, output_dir, output_dpi)
     )
-    print("done")
     exit(0)
