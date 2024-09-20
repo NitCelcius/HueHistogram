@@ -1,5 +1,6 @@
 import math
 import os
+import warnings
 
 import cv2
 import line_profiler
@@ -29,8 +30,12 @@ PLOT_BRIGHTNESS = 255  # ヒストグラムに使う色の明るさ
 @memory_profiler.profile
 @line_profiler.profile
 def generate_hue_histogram(
-    image_path: str, out_path: str | None = None, out_dpi: int | None = None
-) -> Axes:
+    image_path: str,
+    out_path: str | None = None,
+    out_dpi: int | None = None,
+    verbose: bool = False,
+    allow_overwrite: bool = False,
+) -> Axes | None:
     """
     画像ファイルから彩度ヒストグラムを生成して、表示・保存する
 
@@ -48,10 +53,24 @@ def generate_hue_histogram(
         生成するグラフのdpi。
         None を指定すると matplotlib に任せます。
         例: 600 (600dpi: 1920 x 1440 くらい)
+    :param verbose: bool
+        ログを出力するかどうか。
+        True であれば進捗などいっぱいメッセージを出します。
+        False であれば警告以外何も出力しません。
+    :param allow_overwrite: bool
+        出力先の画像が存在する場合に上書きするかどうか。
+        True だと確認せず上書きします。
+        False だと上書きせず警告します。
     :return: matplotlib.axes._axe.Axes
         描画したヒストグラムの Axes オブジェクト。凡例は削除され、タテ・ヨコ軸、タイトルは設定された状態で返ります
     """
 
+    # 上書きを防止する
+    if os.path.exists(image_path) and not allow_overwrite:
+        warnings.warn(f"The file {out_path} already exists, skipping! Specify allow_overwrite=True to allow overwrite.")
+        return None
+    
+    if verbose: print(f"Processing {image_path}...")
     img = cv2.imread(image_path)
     hsvf = cv2.cvtColor(img, cv2.COLOR_BGR2HSV_FULL).astype(
         np.int32
@@ -118,25 +137,42 @@ def generate_hue_histogram(
     # 保存か表示する
     if out_path is not None:
         if out_dpi is not None:
+            if os.path.exists(out_path) and allow_overwrite is False:
+                warnings.warn(f"The file {out_path} already exists so unable to save the histogram! Specify allow_overwrite=True to allow overwrite.")
+                return
             savefig(out_path)
         else:
+            if os.path.exists(out_path) and allow_overwrite is False:
+                warnings.warn(f"The file {out_path} already exists so unable to save the histogram! Specify allow_overwrite=True to allow overwrite.")
+                return
             savefig(out_path, dpi=out_dpi)
     else:
         show()
+
+    if verbose: print(f"Histogram saved to {out_path}")
 
     return g
 
 
 async def generate_hue_histograms(
-    input_files: list[str], output_dir: str, output_dpi: int | None = None
-):
+    input_files: list[str],
+    output_dir: str,
+    **kwargs
+    # out_dpi: int | None = None,
+    # verbose: bool | None = None,
+    # allow_overwrite: bool | None = None,
+) -> bool:
+    failed_files: list[str] = []
     with ProcessPoolExecutor(max_workers=8) as executor:
         for input_file in input_files:
             output_path = os.path.join(output_dir, os.path.basename(input_file))
-            print(f"submit {input_file} ...")
-            executor.submit(generate_hue_histogram, input_file, output_path, output_dpi)
-            print(f"submit {input_file} done")
-    return
+            res = executor.submit(generate_hue_histogram, input_file, output_path, **kwargs)
+            if res.result() is None:
+                failed_files.append(input_file)
+        if kwargs["verbose"] and failed_files:
+            print("Failed to generate the histograms for following files: ")
+            print(failed_files)
+    return not failed_files # 空っぽだと True になる
 
 
 # generate_hue_histogram(
