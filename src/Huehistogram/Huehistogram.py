@@ -1,6 +1,7 @@
 import math
 import os
 import warnings
+from asyncio import Future
 from concurrent.futures import ProcessPoolExecutor
 
 import cv2
@@ -168,18 +169,21 @@ async def generate_hue_histograms(
     # verbose: bool | None = None,
     # allow_overwrite: bool | None = None,
 ) -> bool:
-    failed_files: list[str] = []
+    failed_files: list[str] = list()
+    path_and_future_mapping: dict[str, Future] = dict()
     with ProcessPoolExecutor(max_workers=8) as executor:
         for input_file in input_files:
             output_path = os.path.join(output_dir, os.path.basename(input_file))
-            res = executor.submit(
+            future = executor.submit(
                 generate_hue_histogram, input_file, output_path, **kwargs
             )
-            if res.result() is None:
-                failed_files.append(input_file)
-        if kwargs["verbose"] and failed_files:
-            print("Failed to generate the histograms for following files: ")
-            print(failed_files)
+            path_and_future_mapping[output_path] = future
+    for output_path in path_and_future_mapping:
+        if path_and_future_mapping[output_path].result() is None:
+            failed_files.append(input_file)
+    if kwargs["verbose"] and failed_files:
+        print("Failed to generate the histograms for following files: ")
+        print(failed_files)
     return not failed_files  # 空っぽだと True になる
 
 
