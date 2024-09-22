@@ -39,8 +39,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "-o", "--output", help="path(s) to the directory to output histograms"
     )
-    parser.add_argument("-v", "--verbose", help="output", action="store_true")
-
+    parser.add_argument(
+        "-v", "--verbose", help="display verbose messages", action="store_true"
+    )
+    parser.add_argument(
+        "-f",
+        "--force-overwrite",
+        help="Do overwrite files if a file exists on destination",
+        action="store_true",
+    )
     parser.add_argument("-d", "--dpi", help="the dpi to output histograms")
     args = parser.parse_args()
 
@@ -65,7 +72,10 @@ if __name__ == "__main__":
     else:
         if args.directory_input:
             input_path = args.directory_input[0]
-            input_files = [os.path.join(input_path, file_name) for file_name in os.listdir(input_path)]
+            input_files = [
+                os.path.join(input_path, file_name)
+                for file_name in os.listdir(input_path)
+            ]
             output_dir = args.output
         elif args.input is None and args.output is None:
             input_files = sys.argv[
@@ -98,10 +108,14 @@ if __name__ == "__main__":
             input_files=input_files,
             output_dir=output_dir,
             out_dpi=output_dpi,
-            verbose=is_verbose
+            verbose=is_verbose,
+            allow_overwrite=args.force_overwrite,
         )
     )
     if res:
         exit(0)
     else:
+        print(
+            "Tip: If you want to overwrite files on destination, use -f (--force-overwrite) option."
+        )
         exit(1)
