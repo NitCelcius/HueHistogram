@@ -8,7 +8,6 @@ from Huehistogram import Huehistogram
 
 SIG_INVALID_ARGS = 1
 
-print("Run cli")
 if __name__ == "__main__":
 
     def show_help():
@@ -27,9 +26,27 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("args", nargs="*")
-    parser.add_argument("-i", "--input", help="path(s) to input image files", nargs="+")
+    arg_input_group = parser.add_mutually_exclusive_group()
+    arg_input_group.add_argument(
+        "-i", "--input", help="path(s) to input image files", nargs="+"
+    )
+    arg_input_group.add_argument(
+        "-dir",
+        "--directory-input",
+        help="the path input image files are located",
+        nargs="+",
+    )
     parser.add_argument(
         "-o", "--output", help="path(s) to the directory to output histograms"
+    )
+    parser.add_argument(
+        "-v", "--verbose", help="display verbose messages", action="store_true"
+    )
+    parser.add_argument(
+        "-f",
+        "--force-overwrite",
+        help="Do overwrite files if a file exists on destination",
+        action="store_true",
     )
     parser.add_argument("-d", "--dpi", help="the dpi to output histograms")
     args = parser.parse_args()
@@ -38,6 +55,7 @@ if __name__ == "__main__":
     output_dir = ""
     output_dpi = args.dpi
 
+    is_verbose = args.verbose
     if args.input is not None and args.output is not None:
         if args.args:
             print(
@@ -48,10 +66,18 @@ if __name__ == "__main__":
                 "  python huehistogram_cli.py -i [path/to/image.jpg] [image_2.jpg] -o [path/to/histograms/]"
             )
             exit(SIG_INVALID_ARGS)
-        input_files = args.input
-        output_dir = args.output
+        else:
+            input_files = args.input
+            output_dir = args.output
     else:
-        if args.input is None and args.output is None:
+        if args.directory_input:
+            input_path = args.directory_input[0]
+            input_files = [
+                os.path.join(input_path, file_name)
+                for file_name in os.listdir(input_path)
+            ]
+            output_dir = args.output
+        elif args.input is None and args.output is None:
             input_files = sys.argv[
                 1:-1
             ]  # 実行するプログラム名と最後を除いて input だと思い込む
@@ -77,8 +103,19 @@ if __name__ == "__main__":
             print(f"Input file {input_file} does not exist!")
             exit(SIG_INVALID_ARGS)
 
-    asyncio.run(
-        Huehistogram.generate_hue_histograms(input_files, output_dir, output_dpi)
+    res = asyncio.run(
+        Huehistogram.generate_hue_histograms(
+            input_files=input_files,
+            output_dir=output_dir,
+            out_dpi=output_dpi,
+            verbose=is_verbose,
+            allow_overwrite=args.force_overwrite,
+        )
     )
-    print("done")
-    exit(0)
+    if res:
+        exit(0)
+    else:
+        print(
+            "Tip: If you want to overwrite files on destination, use -f (--force-overwrite) option."
+        )
+        exit(1)
