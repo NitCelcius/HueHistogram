@@ -175,9 +175,7 @@ async def generate_hue_histograms(
         raise ValueError("input_files and output_paths must have the same length")
 
     with ProcessPoolExecutor(max_workers=8) as executor:
-        for index in range(len(input_files)):
-            input_file = input_files[index]
-            output_path = output_paths[index]
+        for input_file, output_path in zip(input_files, output_paths):
             future = executor.submit(
                 generate_hue_histogram, input_file, output_path, **kwargs
             )

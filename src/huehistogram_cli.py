@@ -131,15 +131,23 @@ if __name__ == "__main__":
         print("Please specify paths to input files and output directory!")
         exit(SIG_INVALID_ARGS)
 
-    for output_file in output_paths:
-        if not os.path.isdir(os.path.dirname(output_file)):
-            print(f"Output directory {output_file} does not exist!")
-            exit(SIG_INVALID_ARGS)
+    if any(
+        (
+            not os.path.isdir(nonexistent_output_dir := os.path.dirname(output_file))
+            for output_file in output_paths
+        )
+    ):
+        print(f"Output directory {nonexistent_output_dir} does not exist!")
+        exit(SIG_INVALID_ARGS)
 
-    for input_file in input_files:
-        if not os.path.exists(input_file):
-            print(f"Input file {input_file} does not exist!")
-            exit(SIG_INVALID_ARGS)
+    if any(
+        (
+            not os.path.isdir(os.path.dirname(nonexistent_input_file := input_file))
+            for input_file in input_files
+        )
+    ):
+        print(f"Input file {nonexistent_input_file} does not exist!")
+        exit(SIG_INVALID_ARGS)
 
     print(input_files)
     print(output_paths)
