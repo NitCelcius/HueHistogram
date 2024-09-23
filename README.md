@@ -30,14 +30,14 @@ Now open ``docs/images/out/pexels-nietjuh-histogram.png`` to see the hue histogr
 Use `-i` option with path to image, then use `-o` option with path to output directory or path with a filename and
 extension that you want your histogram to have. The following is an example of specifying filename as output:
 
-```
+```bash
 python src/huehistogram_cli.py -i path/to/input_image.png -o path/to/output_histogram.png
 ```
 
 If you use `-o` option with a path to existing directory, the output filename will be same as the input filename. Let's
 run the following command:
 
-```
+```bash
 python src/huehistogram_cli.py -i path/to/input_image.png -o path/to/output_dir/
 ```
 
@@ -64,7 +64,7 @@ python src/huehistogram_cli.py -i path/to/input_image.png -o path/to/output_dir/
 
 `-i` option accepts multiple paths to images. Use `-o` option with output path to **directory**:
 
-```
+```bash
 python src/huehistogram_cli.py -i path/to/im1.png path/to/im2.png -o path/to/output_dir/
 ```
 
@@ -73,7 +73,7 @@ python src/huehistogram_cli.py -i path/to/im1.png path/to/im2.png -o path/to/out
 
 If you want to bulk-process all images in a directory, use `-dir` `--directory-input` option:
 
-```
+```bash
 python src/huehistogram_cli.py -dir path/to/directory -o path/to/output_dir/
 ```
 
