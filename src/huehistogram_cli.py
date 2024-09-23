@@ -92,7 +92,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     input_files = []
-    output_dpi = args.dpi
     is_verbose = args.verbose
     input_arg = args.input
     output_arg = args.output
@@ -151,13 +150,17 @@ if __name__ == "__main__":
         print(f"Input file {nonexistent_input_file} does not exist!")
         exit(SIG_INVALID_ARGS)
 
+    options = Huehistogram.HueHistogramOptions()
+    if args.dpi:
+        options.output_dpi = args.dpi
+
     res = asyncio.run(
         Huehistogram.generate_hue_histograms(
             input_files=input_files,
             output_paths=output_paths,
-            out_dpi=output_dpi,
             verbose=is_verbose,
             allow_overwrite=args.force_overwrite,
+            options=options,
         )
     )
     if res:

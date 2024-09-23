@@ -110,7 +110,6 @@ class HueHistogramOptions:
 def generate_hue_histogram(
     image_path: str,
     out_path: str | None = None,
-    out_dpi: int | None = None,
     verbose: bool = False,
     allow_overwrite: bool = False,
     options: HueHistogramOptions | None = None,
@@ -128,10 +127,6 @@ def generate_hue_histogram(
         None を指定するか未指定だと、かわりに plt.show() を使って表示します。
         拡張子は matplotlib がサポートしていればなんでも使えます。確認しないので、上書き注意！
         例: "/path/to/histogram.png"
-    :param out_dpi: int | None
-        生成するグラフのdpi。
-        None を指定すると matplotlib に任せます。
-        例: 600 (600dpi: 1920 x 1440 くらい)
     :param verbose: bool
         ログを出力するかどうか。
         True であれば進捗などいっぱいメッセージを出します。
@@ -150,6 +145,7 @@ def generate_hue_histogram(
     if options is None:
         options = HueHistogramOptions()
 
+    out_dpi = options.output_dpi
     BRIGHTNESS_MIN = options.pixel_filter.brightness_lower_limit
     BRIGHTNESS_MAX = options.pixel_filter.brightness_upper_limit
     SATURATION_MAX = options.pixel_filter.saturation_upper_limit
