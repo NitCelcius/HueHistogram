@@ -16,29 +16,31 @@ def input_and_output_extract_args(
     if isinstance(input_arg, str):
         # input_arg: list[str] を保証
         return input_and_output_extract_args([input_arg], output_arg)
-    
-    if os.path.isdir(output_arg): # 存在するディレクトリならここに入れれば OK
+
+    if os.path.isdir(output_arg):  # 存在するディレクトリならここに入れれば OK
         output_paths = [
             os.path.join(output_arg, os.path.basename(input_file))
             for input_file in input_arg
         ]
         return input_arg, output_paths
-    
+
     # output_arg は存在するディレクトリではないので、ファイルか存在しないディレクトリ
     # つまりここに書き込むことはできない
     output_file_name = os.path.basename(output_arg)
     if output_file_name == "":  # output_arg がファイルじゃないなら
-        if len(input_arg) >= 2: # のわりに入力ファイルが2つ以上あるとどの名前を使えばいいか不明
+        if (
+            len(input_arg) >= 2
+        ):  # のわりに入力ファイルが2つ以上あるとどの名前を使えばいいか不明
             # これは input_arg が str の場合も含むけど list で包括的に処理したかった
             print(
-                f"If you are trying to input two or more files, "
-                f"use --output-dir option or specify a path to "
-                f"existing directory on --output option."
+                "If you are trying to input two or more files, "
+                "use --output-dir option or specify a path to "
+                "existing directory on --output option."
             )
             exit(SIG_INVALID_ARGS)
         # 入力ファイルが1つなので、出力ファイルも同じ名前を使わせる
         output_file_name = os.path.basename(input_arg[0])
-    
+
     # output 先のディレクトリに output_file_name なるファイルを作れということと解釈
     output_paths = [os.path.join(os.path.dirname(output_arg), output_file_name)]
     return input_arg, output_paths
@@ -98,7 +100,7 @@ if __name__ == "__main__":
     if args.directory_input:
         # directory_input, input は mutually exclusive なので input_arg = None であることが保証される
         input_path = args.directory_input[0]
-        input_arg = [ # 子要素ぜんぶ input に指定したことにする
+        input_arg = [  # 子要素ぜんぶ input に指定したことにする
             os.path.join(input_path, file_name) for file_name in os.listdir(input_path)
         ]
 
@@ -124,7 +126,7 @@ if __name__ == "__main__":
     if output_arg is None:
         print("Please specify a path to output histograms using --output option!")
         exit(SIG_INVALID_ARGS)
-    
+
     input_files, output_paths = input_and_output_extract_args(input_arg, output_arg)
 
     if not input_files or not output_paths:
