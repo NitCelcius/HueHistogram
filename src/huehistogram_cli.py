@@ -149,9 +149,6 @@ if __name__ == "__main__":
         print(f"Input file {nonexistent_input_file} does not exist!")
         exit(SIG_INVALID_ARGS)
 
-    print(input_files)
-    print(output_paths)
-
     res = asyncio.run(
         Huehistogram.generate_hue_histograms(
             input_files=input_files,
