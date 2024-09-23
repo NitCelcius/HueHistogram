@@ -24,7 +24,7 @@ Now open ``docs/images/out/pexels-nietjuh-histogram.png`` to see the hue histogr
 
 # Usage
 
-> [!]NOTE
+> [!NOTE]
 > Run `src/huehistogram_cli.py` without arguments to see all available options.
 
 ## Generate a histogram of an image
@@ -45,11 +45,11 @@ python src/huehistogram_cli.py -i path/to/input_image.png -o path/to/output_dir/
 
 ... and you will get `path/to/output_dir/input_image.png` as output.
 
-> [!]IMPORTANT
+> [!IMPORTANT]
 > If you do not specify output filename, the filename and **the extension of the output file(s) will be same** as input
 > file(s). If you want PNG or something make sure to specify output filename.
 
-> [!]NOTE
+> [!NOTE]
 > In default behavior, the script will NOT overwrite existing files. If you need to overwrite existing files, use `-f` (
 `--force-overwrite`) option to recklessly overwrite existing files.
 
