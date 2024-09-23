@@ -128,7 +128,7 @@ if __name__ == "__main__":
     input_files, output_paths = input_and_output_extract_args(input_arg, output_arg)
 
     if not input_files or not output_paths:
-        print("Please specify paths to input files and output directory!")
+        print("Please specify both path(s) to input and output files!")
         exit(SIG_INVALID_ARGS)
 
     if any(
