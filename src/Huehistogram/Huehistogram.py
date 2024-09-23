@@ -65,7 +65,7 @@ def generate_hue_histogram(
     """
 
     # 上書きを防止する
-    if os.path.exists(image_path) and not allow_overwrite:
+    if os.path.exists(out_path) and not allow_overwrite:
         warnings.warn(
             f"The file {out_path} already exists, skipping! Specify allow_overwrite=True to allow overwrite."
         )
@@ -163,7 +163,7 @@ def generate_hue_histogram(
 
 async def generate_hue_histograms(
     input_files: list[str],
-    output_dir: str,
+    output_paths: list[str],
     **kwargs,
     # out_dpi: int | None = None,
     # verbose: bool | None = None,
@@ -171,9 +171,11 @@ async def generate_hue_histograms(
 ) -> bool:
     failed_files: list[str] = list()
     path_and_future_mapping: dict[str, Future] = dict()
+    if len(input_files) != len(output_paths):
+        raise ValueError("input_files and output_paths must have the same length")
+
     with ProcessPoolExecutor(max_workers=8) as executor:
-        for input_file in input_files:
-            output_path = os.path.join(output_dir, os.path.basename(input_file))
+        for input_file, output_path in zip(input_files, output_paths):
             future = executor.submit(
                 generate_hue_histogram, input_file, output_path, **kwargs
             )
