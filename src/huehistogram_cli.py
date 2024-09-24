@@ -94,6 +94,10 @@ if __name__ == "__main__":
         help="Do overwrite files if a file exists on destination",
         action="store_true",
     )
+    parser.add_argument(
+        "--max-workers",
+        help="The max number of images to process in parallel. Setting higher value will use more RAM.",
+    )
     arg_options_group = parser.add_argument_group("Histogram options")
     arg_options_group.add_argument("-d", "--dpi", help="the dpi to output histograms")
     arg_options_group.add_argument(
@@ -181,6 +185,8 @@ if __name__ == "__main__":
         print(f"Input file {nonexistent_input_file} does not exist!")
         exit(SIG_INVALID_ARGS)
 
+    max_workers = args.max_workers
+
     options = Huehistogram.HueHistogramOptions()
     if args.dpi:
         options.output_dpi = args.dpi
@@ -203,6 +209,7 @@ if __name__ == "__main__":
             output_paths=output_paths,
             verbose=is_verbose,
             allow_overwrite=args.force_overwrite,
+            max_workers=max_workers,
             options=options,
         )
     )

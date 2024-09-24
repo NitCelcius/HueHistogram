@@ -253,6 +253,7 @@ def generate_hue_histogram(
 async def generate_hue_histograms(
     input_files: list[str],
     output_paths: list[str],
+    max_workers: int | None,
     **kwargs,
     # out_dpi: int | None = None,
     # verbose: bool | None = None,
@@ -263,6 +264,10 @@ async def generate_hue_histograms(
         入力するファイルへのパス。
     :param output_paths: list[str]
         出力先のパス(ファイル名まで)。input_files の順番でパスを指定してください。
+    :param max_workers: int | None
+        並列処理の同時実行数。この数の画像を同時に処理します。
+        別インスタンスで実行するためメモリの使用量はこの値に比例します。
+        None か指定しない場合は ProcessPoolExecutor のデフォルトを使います。
     :param kwargs:
         generate_hue_histogram 関数に渡すオプション。同じものが使えます。
     :return:
@@ -275,7 +280,7 @@ async def generate_hue_histograms(
     if len(input_files) != len(output_paths):
         raise ValueError("input_files and output_paths must have the same length")
 
-    with ProcessPoolExecutor(max_workers=8) as executor:
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
         for input_file, output_path in zip(input_files, output_paths):
             future = executor.submit(
                 generate_hue_histogram, input_file, output_path, **kwargs
