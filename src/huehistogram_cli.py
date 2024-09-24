@@ -56,14 +56,20 @@ if __name__ == "__main__":
         print(
             "    python huehistogram_cli.py -i [path/to/image.jpg] [image_2.jpg] -o [path/to/histograms/]"
         )
+        print("  To show full usage:")
+        print("    python huehistogram_cli.py -h")
         return
 
     if len(sys.argv) <= 1:
         show_help()
         exit(SIG_INVALID_ARGS)
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("args", nargs="*")
+    parser = argparse.ArgumentParser(description="Generate hue histogram")
+    parser.add_argument(
+        "args",
+        nargs="*",
+        help="path(s) to some input files and output directory/file. The last argument will be used as output path if you do not specify -i and -o explicitly.",
+    )
     arg_input_group = parser.add_mutually_exclusive_group()
     arg_input_group.add_argument(
         "-i", "--input", help="path(s) to input image files", nargs="+"
