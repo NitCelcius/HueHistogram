@@ -88,7 +88,32 @@ if __name__ == "__main__":
         help="Do overwrite files if a file exists on destination",
         action="store_true",
     )
-    parser.add_argument("-d", "--dpi", help="the dpi to output histograms")
+    arg_options_group = parser.add_argument_group("Histogram options")
+    arg_options_group.add_argument("-d", "--dpi", help="the dpi to output histograms")
+    arg_options_group.add_argument(
+        "--brightness-upper-limit",
+        help="the upper limit of pixel brightness. Pixels with more brightness will not be counted.",
+    )
+    arg_options_group.add_argument(
+        "--brightness-lower-limit",
+        help="the lower limit of pixel brightness. Pixels with less brightness will not be counted.",
+    )
+    arg_options_group.add_argument(
+        "--saturation-upper-limit",
+        help="the upper limit of pixel saturation. Pixels with more saturation will not be counted.",
+    )
+    arg_options_group.add_argument(
+        "--saturation-lower-limit",
+        help="the lower limit of pixel saturation. Pixels with less saturation will not be counted.",
+    )
+    arg_options_group.add_argument(
+        "--bar-saturation",
+        help="the saturation value to use when drawing histogram bars",
+    )
+    arg_options_group.add_argument(
+        "--bar-brightness",
+        help="the brightness value to use when drawing histogram bars",
+    )
     args = parser.parse_args()
 
     input_files = []
@@ -153,6 +178,18 @@ if __name__ == "__main__":
     options = Huehistogram.HueHistogramOptions()
     if args.dpi:
         options.output_dpi = args.dpi
+    if args.brightness_upper_limit:
+        options.brightness_upper_limit = args.brightness_upper_limit
+    if args.brightness_lower_limit:
+        options.brightness_lower_limit = args.brightness_lower_limit
+    if args.saturation_upper_limit:
+        options.saturation_upper_limit = args.saturation_upper_limit
+    if args.saturation_lower_limit:
+        options.saturation_lower_limit = args.saturation_lower_limit
+    if args.bar_saturation:
+        options.bar_saturation = args.bar_saturation
+    if args.bar_brightness:
+        options.bar_brightness = args.bar_brightness
 
     res = asyncio.run(
         Huehistogram.generate_hue_histograms(
