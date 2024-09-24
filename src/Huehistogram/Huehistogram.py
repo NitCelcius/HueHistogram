@@ -258,6 +258,18 @@ async def generate_hue_histograms(
     # verbose: bool | None = None,
     # allow_overwrite: bool | None = None,
 ) -> bool:
+    """
+    :param input_files:
+        入力するファイルへのパス。
+    :param output_paths: list[str]
+        出力先のパス(ファイル名まで)。input_files の順番でパスを指定してください。
+    :param kwargs:
+        generate_hue_histogram 関数に渡すオプション。同じものが使えます。
+    :return:
+        すべての出力が成功したかどうか。
+        True ならすべて成功しています。
+        False なら1つ以上のエラーが発生しています。
+    """
     failed_files: list[str] = list()
     path_and_future_mapping: dict[str, Future] = dict()
     if len(input_files) != len(output_paths):
