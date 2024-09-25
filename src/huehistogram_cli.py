@@ -11,15 +11,26 @@ SIG_INVALID_ARGS = 1
 
 
 def input_and_output_extract_args(
-    input_arg: str | list[str], output_arg: str
+    input_arg: str | list[str], output_arg: str, output_extension: str | None = None
 ) -> Tuple[list[str], list[str]]:
     if isinstance(input_arg, str):
         # input_arg: list[str] を保証
         return input_and_output_extract_args([input_arg], output_arg)
+    if output_extension and "." not in output_extension:
+        output_extension = "." + output_extension
+
+    def _generate_output_filename(input_path: str) -> str:
+        basename = os.path.basename(input_path)
+
+        if output_extension is None:
+            return basename
+
+        filename_no_ext, ext = os.path.splitext(basename)
+        return filename_no_ext + output_extension
 
     if os.path.isdir(output_arg):  # 存在するディレクトリならここに入れれば OK
         output_paths = [
-            os.path.join(output_arg, os.path.basename(input_file))
+            os.path.join(output_arg, _generate_output_filename(input_file))
             for input_file in input_arg
         ]
         return input_arg, output_paths
@@ -39,7 +50,7 @@ def input_and_output_extract_args(
             )
             exit(SIG_INVALID_ARGS)
         # 入力ファイルが1つなので、出力ファイルも同じ名前を使わせる
-        output_file_name = os.path.basename(input_arg[0])
+        output_file_name = _generate_output_filename(input_arg[0])
 
     # output 先のディレクトリに output_file_name なるファイルを作れということと解釈
     output_paths = [os.path.join(os.path.dirname(output_arg), output_file_name)]
@@ -86,6 +97,13 @@ if __name__ == "__main__":
         help="path(s) to the directory to output histogram(s). Specify a path to image file to input just one image, otherwise specify a path to existing directory.",
     )
     parser.add_argument(
+        "--output-extension",
+        help="the file extension of output files. "
+             "If you specify this option all histograms will be saved with this extension. "
+             "You can also specify something other than file extension "
+             "to use as suffix of filename; e.g. _hist.png",
+    )
+    parser.add_argument(
         "-v", "--verbose", help="display verbose messages", action="store_true"
     )
     parser.add_argument(
@@ -126,6 +144,7 @@ if __name__ == "__main__":
     is_verbose = args.verbose
     input_arg = args.input
     output_arg = args.output
+    output_extension_override = args.output_extension
 
     if args.directory_input:
         # directory_input, input は mutually exclusive なので input_arg = None であることが保証される
@@ -157,7 +176,11 @@ if __name__ == "__main__":
         print("Please specify a path to output histograms using --output option!")
         exit(SIG_INVALID_ARGS)
 
-    input_files, output_paths = input_and_output_extract_args(input_arg, output_arg)
+    input_files, output_paths = input_and_output_extract_args(
+        input_arg=input_arg,
+        output_arg=output_arg,
+        output_extension=output_extension_override,
+    )
 
     if not input_files or not output_paths:
         print("Please specify both path(s) to input and output files!")
