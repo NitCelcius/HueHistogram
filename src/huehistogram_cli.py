@@ -56,14 +56,20 @@ if __name__ == "__main__":
         print(
             "    python huehistogram_cli.py -i [path/to/image.jpg] [image_2.jpg] -o [path/to/histograms/]"
         )
+        print("  To show full usage:")
+        print("    python huehistogram_cli.py -h")
         return
 
     if len(sys.argv) <= 1:
         show_help()
         exit(SIG_INVALID_ARGS)
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("args", nargs="*")
+    parser = argparse.ArgumentParser(description="Generate hue histogram")
+    parser.add_argument(
+        "args",
+        nargs="*",
+        help="path(s) to some input files and output directory/file. The last argument will be used as output path if you do not specify -i and -o explicitly.",
+    )
     arg_input_group = parser.add_mutually_exclusive_group()
     arg_input_group.add_argument(
         "-i", "--input", help="path(s) to input image files", nargs="+"
@@ -88,11 +94,35 @@ if __name__ == "__main__":
         help="Do overwrite files if a file exists on destination",
         action="store_true",
     )
-    parser.add_argument("-d", "--dpi", help="the dpi to output histograms")
+    arg_options_group = parser.add_argument_group("Histogram options")
+    arg_options_group.add_argument("-d", "--dpi", help="the dpi to output histograms")
+    arg_options_group.add_argument(
+        "--brightness-upper-limit",
+        help="the upper limit of pixel brightness. Pixels with more brightness will not be counted.",
+    )
+    arg_options_group.add_argument(
+        "--brightness-lower-limit",
+        help="the lower limit of pixel brightness. Pixels with less brightness will not be counted.",
+    )
+    arg_options_group.add_argument(
+        "--saturation-upper-limit",
+        help="the upper limit of pixel saturation. Pixels with more saturation will not be counted.",
+    )
+    arg_options_group.add_argument(
+        "--saturation-lower-limit",
+        help="the lower limit of pixel saturation. Pixels with less saturation will not be counted.",
+    )
+    arg_options_group.add_argument(
+        "--bar-saturation",
+        help="the saturation value to use when drawing histogram bars",
+    )
+    arg_options_group.add_argument(
+        "--bar-brightness",
+        help="the brightness value to use when drawing histogram bars",
+    )
     args = parser.parse_args()
 
     input_files = []
-    output_dpi = args.dpi
     is_verbose = args.verbose
     input_arg = args.input
     output_arg = args.output
@@ -151,13 +181,29 @@ if __name__ == "__main__":
         print(f"Input file {nonexistent_input_file} does not exist!")
         exit(SIG_INVALID_ARGS)
 
+    options = Huehistogram.HueHistogramOptions()
+    if args.dpi:
+        options.output_dpi = args.dpi
+    if args.brightness_upper_limit:
+        options.brightness_upper_limit = args.brightness_upper_limit
+    if args.brightness_lower_limit:
+        options.brightness_lower_limit = args.brightness_lower_limit
+    if args.saturation_upper_limit:
+        options.saturation_upper_limit = args.saturation_upper_limit
+    if args.saturation_lower_limit:
+        options.saturation_lower_limit = args.saturation_lower_limit
+    if args.bar_saturation:
+        options.bar_saturation = args.bar_saturation
+    if args.bar_brightness:
+        options.bar_brightness = args.bar_brightness
+
     res = asyncio.run(
         Huehistogram.generate_hue_histograms(
             input_files=input_files,
             output_paths=output_paths,
-            out_dpi=output_dpi,
             verbose=is_verbose,
             allow_overwrite=args.force_overwrite,
+            options=options,
         )
     )
     if res:
