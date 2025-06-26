@@ -4,9 +4,7 @@ import cv2
 import pandas as pd
 import numpy as np
 
-image_path = (
-    r"docs\images\pexels-nietjuh-1883385.jpg"
-)
+image_path = r"docs\images\pexels-nietjuh-1883385.jpg"
 out_path = r"docs\images"
 
 if not os.path.exists(out_path):
@@ -49,17 +47,31 @@ def count_pixels(
     return df.reset_index(drop=True)
 
 
-if __name__ == "__main__":
-    img = cv2.imread(image_path)
-
-    # 画像を読み込む
+def count_colors_from_file(
+    image_path: str, ignore_transparent_pixels: bool = True
+) -> pd.DataFrame:
+    """
+    画像ファイルパスから画像を読み込み、色カウントDataFrameを返す
+    :param image_path: 画像ファイルパス
+    :param ignore_transparent_pixels: 完全に透過しているピクセルを無視するかどうか
+    :return: 色ごとのカウントを含むDataFrame
+    """
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Image file not found: {image_path}")
+    img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+    if img is None:
+        raise ValueError(f"Failed to read image file: {image_path}")
+    # BGR→RGB変換（アルファチャネルがある場合はBGRA→RGBA）
+    if img.shape[-1] == 4:
+        img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
+    else:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    return count_pixels(img, ignore_transparent_pixels=ignore_transparent_pixels)
 
+
+if __name__ == "__main__":
     # 画像を読み込み、色をカウント
-    df_desc_index = count_pixels(
-        cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
-    )
+    df_desc_index = count_colors_from_file(image_path)
 
     print(df_desc_index.head(10))  # 上位10色とそのカウントを表示
 
