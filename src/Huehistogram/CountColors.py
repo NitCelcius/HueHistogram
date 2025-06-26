@@ -13,14 +13,28 @@ if not os.path.exists(out_path):
     os.makedirs(out_path)
 
 
-def count_pixels(image: np.ndarray) -> pd.DataFrame:
+def count_pixels(
+    image: np.ndarray, ignore_transparent_pixels: bool = True
+) -> pd.DataFrame:
     """
     画像内のピクセルの色をカウントし、DataFrameにまとめる
+    ignore_transparent_pixels を True にすると完全に透過しているピクセル（alpha=0）を無視する
 
     :param image: 画像データ (numpy.ndarray)
+    :param ignore_transparent_pixels: 完全に透過しているピクセルを無視するかどうか (True で無視)
     :return: 色ごとのカウントを含むDataFrame
     """
-    pixels = image.reshape(-1, 3)
+    # アルファチャンネルがある場合 A=0 のやつは除外
+    if image.shape[-1] == 4:
+        # RGBA
+        if ignore_transparent_pixels:
+            mask = image[..., 3] != 0
+        else:
+            mask = np.ones(image.shape[:2], dtype=bool)  # ぜんぶ対象
+        pixels = image[mask]
+        pixels = pixels[:, :3]  # RGBのみ
+    else:
+        pixels = image.reshape(-1, 3)
     pixels = pixels.astype(int)
     color_int = pixels[:, 0] + pixels[:, 1] * 256 + pixels[:, 2] * 256 * 256
     unique_colors, counts = np.unique(color_int, return_counts=True)
