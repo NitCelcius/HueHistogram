@@ -88,6 +88,12 @@ async def generate_color_counts(
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = []
         for input_file, output_path in zip(input_files, output_paths):
+            if os.path.exists(output_path) and not allow_overwrite:
+                print(f"Output file already exists: {output_path}")
+                print("Use --force-overwrite (-f) option to overwrite existing files.")
+                success = False
+                continue
+            
             futures.append(
                 executor.submit(
                     run_color_counting,
@@ -97,12 +103,7 @@ async def generate_color_counts(
                     verbose,
                 )
             )
-        for future, input_file, output_path in zip(futures, input_files, output_paths):
-            if os.path.exists(output_path) and not allow_overwrite:
-                print(f"Output file already exists: {output_path}")
-                print("Use --force-overwrite (-f) option to overwrite existing files.")
-                success = False
-                continue
+        for future in futures:
             result = future.result()
             success = success and result
 
